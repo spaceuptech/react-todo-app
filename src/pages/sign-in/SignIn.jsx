@@ -9,7 +9,6 @@ const Wrapper = withRouter(({ history }) => (
 ))
 
 function SignIn(props) {
-
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
 
