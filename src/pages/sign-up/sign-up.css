@@ -16,8 +16,8 @@
 
 .sign-up .content .sign-up-form {
   position: absolute;
-  left: 30%;
-  right: 30%;
+  left: 10%;
+  right: 10%;
   background-color: #FFF;
   padding: 24px 32px;
   border-radius: 20px;
@@ -46,7 +46,7 @@
 }
 
 .sign-up .already-have-account {
-  font-size: 14px;
+  font-size: 10px;
   display: flex;
   justify-content: center;
   margin-bottom: 24px;
@@ -56,4 +56,15 @@
   color: #FF6700;
   cursor: pointer;
   padding-left: 8px;
+}
+
+@media screen and (min-width:800px){
+  .sign-up .content .sign-up-form {
+    left: 30%;
+    right: 30%;
+  }
+
+  .sign-up .already-have-account {
+    font-size: 14px;
+  }
 }

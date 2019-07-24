@@ -16,8 +16,8 @@
 
 .sign-in .content .sign-in-form {
   position: absolute;
-  left: 30%;
-  right: 30%;
+  left: 10%;
+  right: 10%;
   background-color: #FFF;
   padding: 24px 32px;
   border-radius: 20px;
@@ -46,7 +46,7 @@
 }
 
 .sign-in .dont-have-account {
-  font-size: 14px;
+  font-size: 10px;
   display: flex;
   justify-content: center;
   margin-bottom: 24px;
@@ -54,4 +54,15 @@
 
 a{
   text-decoration: none;
+}
+
+@media screen and (min-width:800px){
+  .sign-in .content .sign-in-form {
+    left: 30%;
+    right: 30%;
+  }
+
+  .sign-in .dont-have-account {
+    font-size: 14px;
+  }
 }
