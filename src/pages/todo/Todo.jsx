@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import './todo.css'
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 
@@ -6,8 +6,14 @@ function Todo() {
   const [value, setValue] = useState('');
   const [list, setList] = useState([]);
 
+  let counter = 0
+
+  useEffect(() => {
+    // Acts as ComponentDidMount
+  }, [0]);
+
   const addTodo = () => {
-    setList(list.concat({ value, isChecked: false }))
+    setList(list.concat({ _id: counter++, value, isChecked: false }))
     setValue('')
   }
 
@@ -45,11 +51,11 @@ function Todo() {
         </div>
       </div>
       <div>
-        {list.map((item, index) => (
+        {list.map((item) => (
           <div key={item} className="single-todo">
-            <input className="checkbox" onChange={() => updateTodo(index)} checked={item.isChecked} type="checkbox" />
+            <input className="checkbox" onChange={() => updateTodo(item._id)} checked={item.isCompleted} type="checkbox" />
             <span className="todo-item">{item.value}</span>
-            <i className="material-icons delete" onClick={() => deleteTodo(index)}>delete</i>
+            <i className="material-icons delete" onClick={() => deleteTodo(item._id)}>delete</i>
           </div>)
         )}
       </div>
