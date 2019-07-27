@@ -7,8 +7,6 @@ function Todo() {
   const [value, setValue] = useState('');
   const [list, setList] = useState([]);
 
-  let counter = 0
-
   useEffect(() => {
     // Acts as ComponentDidMount
     client.getTodos().then(res => {
@@ -81,7 +79,7 @@ function Todo() {
       </div>
       <div>
         {list.map((item) => (
-          <div key={item} className="single-todo">
+          <div key={item._id} className="single-todo">
             <input className="checkbox" onChange={() => updateTodo(item)} checked={item.isCompleted} type="checkbox" />
             <span className="todo-item">{item.value}</span>
             <i className="material-icons delete" onClick={() => deleteTodo(item._id)}>delete</i>
