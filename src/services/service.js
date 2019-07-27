@@ -1,6 +1,9 @@
-class Service {
-  constructor() {
+import { API } from 'space-api';
 
+class Service {
+  constructor(projectId, url) {
+    this.api = new API(projectId, url);
+    this.db = api.Mongo();
   }
 
   generateId = () => {
