@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import './todo.css'
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import client from '../../client';
 
 function Todo() {
   const [value, setValue] = useState('');
@@ -10,23 +11,51 @@ function Todo() {
 
   useEffect(() => {
     // Acts as ComponentDidMount
+    client.getTodos().then(res => {
+      if (!res.ack) {
+        alert('Could not update todo');
+        return;
+      }
+  
+      setList(res.todos);
+    })
   }, [0]);
 
   const addTodo = () => {
-    setList(list.concat({ _id: counter++, value, isChecked: false }))
-    setValue('')
+    client.addTodo(value).then(res => {
+      if (!res.ack) {
+        alert('Could not add todo');
+        return;
+      }
+      
+      setList(list.concat(res.doc))
+      setValue('')
+    })
   }
 
-  const deleteTodo = i => {
-    setList(list.filter((_, j) => i !== j));
+  const deleteTodo = id => {
+    client.deleteTodo(id).then(res => {
+      if (!res.ack) {
+        alert('Could not delete todo');
+        return;
+      }
+  
+      setList(list.filter(todo => id !== todo._id));
+    })
   }
 
-  const updateTodo = index => {
-    setList(list.map((item, i) => {
-      if (index !== i) return item
-      item.isChecked = !item.isChecked
-      return item
-    }))
+  const updateTodo = todo => {
+    client.updateTodo(todo._id, !todo.isCompleted).then(res => {
+      if (!res.ack) {
+        alert('Could not update todo');
+        return;
+      }
+  
+      setList(list.map(t => {
+        if (t._id !== todo._id) return t;
+        return Object.assign({}, t, { isCompleted: !todo.isCompleted })
+      }))
+    })
   }
 
   const handleEnter = (e) => {
@@ -53,7 +82,7 @@ function Todo() {
       <div>
         {list.map((item) => (
           <div key={item} className="single-todo">
-            <input className="checkbox" onChange={() => updateTodo(item._id)} checked={item.isCompleted} type="checkbox" />
+            <input className="checkbox" onChange={() => updateTodo(item)} checked={item.isCompleted} type="checkbox" />
             <span className="todo-item">{item.value}</span>
             <i className="material-icons delete" onClick={() => deleteTodo(item._id)}>delete</i>
           </div>)
