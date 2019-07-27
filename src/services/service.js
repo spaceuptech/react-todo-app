@@ -84,18 +84,22 @@ class Service {
     return { ack: true };
   }
 
-  async getTodos() {
+  getTodos(cb) {
     const condition = cond('userId', '==', this.userId);
 
-    // Fire the query to get the todos
-    const res = await this.db.get('todos').where(condition).apply()
-
-    // Return -ve ack is status code isn't 200
-    if (res.status !== 200) {
-      return { ack: false };
+    // Callback for data changes:
+    const onSnapshot = (docs, type, changedDoc) => {
+      cb(null, docs);
     }
 
-    return { ack: true, todos: res.data.result };
+    // Callback for error while subscribing
+    const onError = (err) => {
+      console.log('Live query error', err)
+      cb(err)
+    }
+
+    // Subscribe to any changes in posts of 'frontend' category
+    return this.db.liveQuery('todos').where(condition).subscribe(onSnapshot, onError)
   }
 
   generateId = () => {

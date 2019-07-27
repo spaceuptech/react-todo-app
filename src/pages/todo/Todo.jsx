@@ -9,14 +9,13 @@ function Todo() {
 
   useEffect(() => {
     // Acts as ComponentDidMount
-    client.getTodos().then(res => {
-      if (!res.ack) {
-        alert('Could not update todo');
-        return;
+    return client.getTodos(((err, todos) => {
+      if (err) {
+        alert(err);
+        return
       }
-  
-      setList(res.todos);
-    })
+      setList(todos);
+    }))
   }, [0]);
 
   const addTodo = () => {
@@ -26,7 +25,6 @@ function Todo() {
         return;
       }
       
-      setList(list.concat(res.doc))
       setValue('')
     })
   }
@@ -36,9 +34,7 @@ function Todo() {
       if (!res.ack) {
         alert('Could not delete todo');
         return;
-      }
-  
-      setList(list.filter(todo => id !== todo._id));
+      }  
     })
   }
 
@@ -48,11 +44,6 @@ function Todo() {
         alert('Could not update todo');
         return;
       }
-  
-      setList(list.map(t => {
-        if (t._id !== todo._id) return t;
-        return Object.assign({}, t, { isCompleted: !todo.isCompleted })
-      }))
     })
   }
 
