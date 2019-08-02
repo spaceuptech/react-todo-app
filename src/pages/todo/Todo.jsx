@@ -9,13 +9,15 @@ function Todo() {
 
   useEffect(() => {
     // Acts as ComponentDidMount
-    return client.getTodos(((err, todos) => {
+    const subscription = client.getTodos(((err, todos) => {
       if (err) {
         alert(err);
         return
       }
       setList(todos);
     }))
+
+    return subscription.unsubscribe
   }, [0]);
 
   const addTodo = () => {
