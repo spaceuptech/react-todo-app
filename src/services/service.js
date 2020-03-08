@@ -1,9 +1,70 @@
 import { API, cond, and } from 'space-api';
+import { ApolloClient } from 'apollo-client';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import { split } from 'apollo-link';
+import { HttpLink } from 'apollo-link-http';
+import { WebSocketLink } from 'apollo-link-ws';
+import { getMainDefinition } from 'apollo-utilities';
+import gql from 'graphql-tag';
+
+const initGraphQLClient = (httpURL, websocketURL) => {
+  // Create an http link for GraphQL client:
+  const httpLink = new HttpLink({
+    uri: httpURL
+  });
+
+  // Create a WebSocket link for GraphQL client:
+  const wsLink = new WebSocketLink({
+    uri: websocketURL,
+    options: {
+      reconnect: true
+    }
+  });
+
+
+  // using the ability to split links, you can send data to each link
+  // depending on what kind of operation is being sent
+  const link = split(
+    // split based on operation type
+    ({ query }) => {
+      const definition = getMainDefinition(query);
+      return (
+        definition.kind === 'OperationDefinition' &&
+        definition.operation === 'subscription'
+      );
+    },
+    wsLink,
+    httpLink,
+  );
+
+  const defaultOptions = {
+    watchQuery: {
+      fetchPolicy: 'no-cache',
+      errorPolicy: 'ignore',
+    },
+    query: {
+      fetchPolicy: 'no-cache',
+      errorPolicy: 'all',
+    },
+  }
+
+  // Create a GraphQL client:
+  const graphQLClient = new ApolloClient({
+    cache: new InMemoryCache({ addTypename: false }),
+    link: link,
+    defaultOptions: defaultOptions
+  });
+
+  return graphQLClient
+}
+
 
 class Service {
-  constructor(projectId, url) {
-    this.api = new API(projectId, url);
-    this.db = this.api.Mongo();
+  constructor(projectId, spaceAPIURL, graphqlHTTPURL, graphqlWebsocketURL) {
+    this.api = new API(projectId, spaceAPIURL);
+    this.graphQLCLient = initGraphQLClient(graphqlHTTPURL, graphqlWebsocketURL)
+    this.db = this.api.DB("mongo");
+    this.todos = []
   }
 
   async login(username, pass) {
@@ -85,21 +146,33 @@ class Service {
   }
 
   getTodos(cb) {
-    const condition = cond('userId', '==', this.userId);
+    return this.graphQLCLient.subscribe({
+      query: gql`subscription {
+        todos(where: {userId: {_eq: "${this.userId}"}}) @mongo{
+          type
+          payload
+        }
+      }`,
+      variables: { userId: this.userId }
+    }).subscribe(({ data }) => {
+      console.log("Subscription", data)
+      const { todos, find } = data
+      const { payload, type } = todos
 
-    // Callback for data changes:
-    const onSnapshot = (docs, type, changedDoc) => {
-      cb(null, docs);
-    }
-
-    // Callback for error while subscribing
-    const onError = (err) => {
-      console.log('Live query error', err)
-      cb(err)
-    }
-
-    // Subscribe to any changes in posts of 'frontend' category
-    return this.db.liveQuery('todos').where(condition).subscribe(onSnapshot, onError)
+      switch (type) {
+        case "initial":
+        case "insert":
+          this.todos = ([...this.todos, payload])
+          break;
+        case "update":
+          this.todos = ([...this.todos.filter(obj => obj._id !== find._id), payload])
+          break
+        case "delete":
+          this.todos = (this.todos.filter(obj => obj._id !== find._id))
+          break
+      }
+      cb(this.todos)
+    })
   }
 
   generateId = () => {

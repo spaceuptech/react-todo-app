@@ -9,15 +9,9 @@ function Todo() {
 
   useEffect(() => {
     // Acts as ComponentDidMount
-    const subscription = client.getTodos(((err, todos) => {
-      if (err) {
-        alert(err);
-        return
-      }
-      setList(todos);
-    }))
+    const subscription = client.getTodos(setList)
 
-    return subscription.unsubscribe
+    return () => subscription.unsubscribe()
   }, [0]);
 
   const addTodo = () => {
@@ -26,7 +20,7 @@ function Todo() {
         alert('Could not add todo');
         return;
       }
-      
+
       setValue('')
     })
   }
@@ -36,7 +30,7 @@ function Todo() {
       if (!res.ack) {
         alert('Could not delete todo');
         return;
-      }  
+      }
     })
   }
 
